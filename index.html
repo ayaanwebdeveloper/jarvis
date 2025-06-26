@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jarvis Assistant</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #00ffe7;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #output {
+      margin-top: 20px;
+      font-size: 18px;
+      width: 80%;
+    }
+
+    #jarvis-face {
+      width: 280px;
+      border: 2px solid #00ffe7;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00ffe7;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: #00ffe7;
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #arcReactor {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #00ffff 30%, #000 70%);
+      box-shadow: 0 0 20px #0ff, 0 0 60px #0ff;
+      margin-top: 40px;
+      animation: pulse 2s infinite;
+      display: none;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #0ff; }
+      50% { box-shadow: 0 0 60px #0ff; }
+      100% { box-shadow: 0 0 10px #0ff; }
+    }
+
+    #radar {
+      margin-top: 30px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 2px solid #0ff;
+      position: relative;
+      overflow: hidden;
+      display: none;
+    }
+
+    .beam {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 255, 255, 0.2);
+      transform-origin: center;
+      animation: rotateRadar 2s linear infinite;
+    }
+
+    @keyframes rotateRadar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙 Jarvis Assistant</h1>
+  <img id="jarvis-face" src="unnamed.webp" />
+  <button onclick="startJarvis()">Start Jarvis</button>
+  <div id="output">Say something like: "Scan area", "Stop scanning"</div>
+  <div id="arcReactor"></div>
+  <div id="radar"><div class="beam"></div></div>
+
+  <audio id="startup" src="https://files.catbox.moe/2wphb1.mp3" preload="auto"></audio>
+  <audio id="themeMusic" src="Recording 2025-06-26 035223.mp4" loop preload="auto"></audio>
+  <audio id="ironSuitSound" src="Repulsor Blast (Iron Man) - Sound Effect for editing.mp3" preload="auto"></audio>
+  <audio id="lightsOffSound" src="Big switch sound effect.mp3" preload="auto"></audio>
+
+  <script>
+    const githubUsername = "ayaanwebdeveloper";
+    const output = document.getElementById("output");
+    let voiceGender = 'male';
+
+    function getVoice() {
+      const voices = speechSynthesis.getVoices();
+      if (voiceGender === 'female') {
+        return voices.find(v => v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira")) || voices[0];
+      } else if (voiceGender === 'urdu') {
+        return voices.find(v => v.lang === 'ur-PK') || voices[0];
+      } else {
+        return voices.find(v => v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david")) || voices[0];
+      }
+    }
+
+    function startJarvis() {
+      document.getElementById("startup").play().catch(() => {});
+      const intro = new SpeechSynthesisUtterance("Jarvis is now active.");
+      intro.voice = getVoice();
+      speechSynthesis.speak(intro);
+      startListening();
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      output.textContent = "🎤 Listening...";
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const cmd = event.results[0][0].transcript.toLowerCase();
+        output.textContent = "You said: " + cmd;
+
+        let reply = "Sorry, I didn’t catch that.";
+
+        if (cmd.includes("scan area")) {
+          document.getElementById("radar").style.display = "block";
+          reply = "Scanning area.";
+        } else if (cmd.includes("stop scanning")) {
+          document.getElementById("radar").style.display = "none";
+          reply = "Scan stopped, sir.";
+        } else if (cmd.includes("maintain my iron man suit")) {
+          document.getElementById("arcReactor").style.display = "block";
+          document.getElementById("ironSuitSound").play().catch(() => {});
+          reply = "Sir, Iron Man suit repaired.";
+        } else if (cmd.includes("off all lights")) {
+          document.body.style.backgroundColor = "black";
+          document.getElementById("lightsOffSound").play().catch(() => {});
+          reply = "All lights off, sir.";
+        } else if (cmd.includes("activate arc reactor")) {
+          document.getElementById("arcReactor").style.display = "block";
+          reply = "Arc reactor activated, sir.";
+        } else if (cmd.includes("power down arc reactor")) {
+          document.getElementById("arcReactor").style.display = "none";
+          reply = "Arc reactor powered down.";
+        } else if (cmd.includes("search youtube for")) {
+          const ytQuery = cmd.replace("search youtube for", "").trim();
+          if (ytQuery) {
+            reply = `Searching YouTube for ${ytQuery}`;
+            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(ytQuery)}`, "_blank");
+          } else {
+            reply = "What do you want me to search on YouTube?";
+          }
+        } else if (cmd.includes("youtube")) {
+          reply = "Opening YouTube.";
+          window.open("https://youtube.com", "_blank");
+        } else if (cmd.includes("google")) {
+          reply = "Opening Google.";
+          window.open("https://google.com", "_blank");
+        } else if (cmd.includes("chatgpt")) {
+          reply = "Opening ChatGPT.";
+          window.open("https://chat.openai.com", "_blank");
+        } else if (cmd.includes("github")) {
+          reply = "Opening GitHub.";
+          window.open("https://github.com", "_blank");
+        } else if (cmd.includes("repository")) {
+          const repoName = cmd.split("repository")[1].trim();
+          if (repoName) {
+            window.open(`https://github.com/${githubUsername}/${repoName}`, "_blank");
+            reply = `Opening your repository: ${repoName}`;
+          } else {
+            reply = "Please say the repository name.";
+          }
+        } else if (cmd.includes("waqt") || cmd.includes("time")) {
+          reply = "The time is " + new Date().toLocaleTimeString();
+        } else if (cmd.includes("tareekh") || cmd.includes("date")) {
+          reply = "Today's date is " + new Date().toLocaleDateString();
+        } else if (cmd.includes("ayaan kon hai") || cmd.includes("who is ayaan")) {
+          reply = "Ayaan is a brilliant front-end developer from Pakistan.";
+        } else if (cmd.includes("hello") || cmd.includes("assalamualaikum")) {
+          reply = "Hello sir. How may I assist you today?";
+        } else if (cmd.includes("play music") || cmd.includes("jarvis theme")) {
+          reply = "Playing Jarvis background theme.";
+          document.getElementById("themeMusic").play().catch(() => {});
+        } else if (cmd.includes("stop music") || cmd.includes("pause music")) {
+          reply = "Stopping background theme.";
+          const music = document.getElementById("themeMusic");
+          music.pause();
+          music.currentTime = 0;
+        } else if (cmd.includes("change voice to male")) {
+          voiceGender = 'male';
+          reply = "Voice changed to male.";
+        } else if (cmd.includes("change voice to female")) {
+          voiceGender = 'female';
+          reply = "Voice changed to female.";
+        } else if (cmd.includes("urdu voice")) {
+          voiceGender = 'urdu';
+          reply = "Urdu voice activated.";
+        } else if (cmd.includes("thank you") || cmd.includes("shukriya")) {
+          reply = "You're welcome, sir.";
+        } else if (cmd.includes("have a nice day")) {
+          reply = "Thank you, sir. Have a nice day.";
+        } else if (cmd.includes("ok bye") || cmd.includes("goodbye") || cmd.includes("allah hafiz")) {
+          reply = "Goodbye sir. Shutting down voice systems.";
+          const music = document.getElementById("themeMusic");
+          music.pause();
+          music.currentTime = 0;
+        }
+
+        const speak = new SpeechSynthesisUtterance(reply);
+        speak.voice = getVoice();
+        speechSynthesis.speak(speak);
+
+        setTimeout(startListening, 2000);
+      };
+
+      recognition.onerror = (event) => {
+        output.textContent = "Error: " + event.error;
+        setTimeout(startListening, 3000);
+      };
+    }
+  </script>
+</body>
+</html>
